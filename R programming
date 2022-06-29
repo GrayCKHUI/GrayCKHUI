@@ -14,8 +14,13 @@ unite(employee, 'name', first_name, last_name, sep = ' ')
 -------------------------------------------------------------------------
 
 
-Visualizaiton
+Visualizaiton (ggplot)
 -----------------------------
+ geom_point
+ geom_bar
+ geom_line
+ geom_smooth
+
 library("ggplot2")
 #geom = the geometric object used to represent your data
 #mapping = matching up a specific variable in your dataset with a specific aesthetic
@@ -28,11 +33,30 @@ ggplot(data=penguins) +
  ggplot(data=penguins) +
   geom_point(mapping=aes(x=flipper_length,y=body_mass，shape=species))
 ------------------------------------------------------------------------
+ggplot(data=diamonds) +
+  geom_bar(mapping=aes(x=cut,fill=cut))
+----------------------------------------------------------------------
 
 
+Facets
+--------------------------------------------------
+ggplot(data=penguins) +
+  geom_point(mapping=aes(x=flipper_length,y=body_mass，color=species))+
+  facet_wrap(~species)
+ 
+#vertical for sex variable, horizontal for species variable
+ggplot(data=penguins)+
+  geom_point(mapping=aes(x=fliper_length,y=body_mass, color=species))
+  facet_grid(sex~species)
+--------------------------------------------------------------------
 
- geom_point
- geom_bar
- geom_line
- geom_smooth
 
+Annotation/ Save
+----------------------------------------------------------------
++labs(title="xxxxxxxx",subtitle="xxxxxxxxxxxxx",caption="xxxxxxxxxxxxxxxxx") +
+annotate("text", x= 220,y= 3500,label= "xxxxxxxxxxxxx")
+
++ggsave("xxx.png")
+
+
+  

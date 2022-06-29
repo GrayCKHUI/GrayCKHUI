@@ -20,7 +20,19 @@ library("ggplot2")
 #geom = the geometric object used to represent your data
 #mapping = matching up a specific variable in your dataset with a specific aesthetic
 ggplot(data=penguins) +
-  geom_point(mapping=aes(x=flipper_length,y=body_mass))
+  geom_point(mapping=aes(x=flipper_length,y=body_mass，color=species))
+  
+ ggplot(data=penguins) +
+  geom_point(mapping=aes(x=flipper_length,y=body_mass，color="purple"))
+ 
+ ggplot(data=penguins) +
+  geom_point(mapping=aes(x=flipper_length,y=body_mass，shape=species))
 ------------------------------------------------------------------------
 
+
+
+ geom_point
+ geom_bar
+ geom_line
+ geom_smooth
 

@@ -1,0 +1,25 @@
+url = "https://etherscan.io/accounts"
+resp = requests.get(url, headers={'User-Agent':'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36'})
+resp.json
+page_content = resp.text
+
+obj = re.compile(r'<tr>.*?<a href.*?>(?P<top>.*?)</a>', re.S)
+
+result = obj.finditer(page_content)
+
+for it in result:
+    print(it.group("top"))
+
+for i in range (2,5):
+    allurl = "https://etherscan.io/accounts/" + str(i)
+    resp = requests.get(allurl, headers={'User-Agent':'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36'})
+    resp.json
+    page_content = resp.text
+
+    obj = re.compile(r'<tr>.*?<a href.*?>(?P<top>.*?)</a>', re.S)
+
+    result = obj.finditer(page_content)
+
+    for it in result:
+        print(it.group("top"))
+ 

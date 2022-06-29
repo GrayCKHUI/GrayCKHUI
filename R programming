@@ -1,0 +1,26 @@
+clean_names()
+
+
+
+TRANSFORMING THE DATA
+------------------------
+employee <- dataframe(id,name,job_title)
+
+#seperate column-name into two columns 
+separate(employee, name, into = c('first_name','last_name'), sep = ' ')
+
+#combine two columns into one
+unite(employee, 'name', first_name, last_name, sep = ' ')
+-------------------------------------------------------------------------
+
+
+Visualizaiton
+-----------------------------
+library("ggplot2")
+#geom = the geometric object used to represent your data
+#mapping = matching up a specific variable in your dataset with a specific aesthetic
+ggplot(data=penguins) +
+  geom_point(mapping=aes(x=flipper_length,y=body_mass))
+------------------------------------------------------------------------
+
+

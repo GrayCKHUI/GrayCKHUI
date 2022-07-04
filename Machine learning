@@ -66,15 +66,15 @@ def replace_matches_in_column(df, column, string_to_match, min_ratio = 47)
   df.loc[rows_with_matches, column] = string_to_match
 ----------------------------------------------------------------
   
-Three Approaches to clear missing values
+Approaches to clear missing values
 ---------------------------------------
-#Drop columns with missing values
+# 1.Drop columns with missing values
 cols_with_missing = [col for col in X_train.columns if X_train[col].isnull().any()]
 
 reduced_X_train = X_train.drop(cols_with_missing, axis = 1)
 reduced_X_valid = X_valid.drop(cols_with_missing, axis = 1)
 
-#Imputation with the mean
+# 2.Imputation with the mean
 from sklearn.impute import SimpleImputer
 
 my_imputer = SimpleImputer()

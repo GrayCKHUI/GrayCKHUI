@@ -11,12 +11,8 @@ soup = bs(r.content)
 
 #Print out our html(you can see indentation)
 print(soup.prettify())
+----------------------------------------------
 
-HTMLFileToBeOpened = open("price.html", "r")
-mainpage = HTMLFileToBeOpened.read()
-soup = bs(mainpage, 'lxml')
-print(soup.prettify())
-print(soup.find('tbody'))
 
 # Scrape the table
 table = soup.find("div")
@@ -39,6 +35,8 @@ para = soup.find_all("p",attrs={"id":"paragraph-id"})
 body = soup.find("body")
 div = body.find('div')
 header = div.find('h1')
+---------------------------------------------------------
+
 
 # We can search specific strings in our find/find_all cells
 import re

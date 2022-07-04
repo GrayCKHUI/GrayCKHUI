@@ -1,0 +1,69 @@
+import requests
+from bs4 import BeautifulSoup as bs
+import numpy as np
+import pandas as pd
+
+# Load the webpage content
+r = requests.get("https://dune.xyz/arthurpanda/PeopleDAO")
+
+# Convert to a beautiful soup object
+soup = bs(r.content)
+
+#Print out our html(you can see indentation)
+print(soup.prettify())
+
+HTMLFileToBeOpened = open("price.html", "r")
+mainpage = HTMLFileToBeOpened.read()
+soup = bs(mainpage, 'lxml')
+print(soup.prettify())
+print(soup.find('tbody'))
+
+# Scrape the table
+table = soup.find("div")
+table
+
+#find and find_all
+first_header = soup.find("h2")
+
+headers = soup.find_all("h2")
+
+# Pass in a list of elements to look for
+first_header = soup.find(["hi","h2"])
+
+headers = soup.find_all(["hi","h2"])
+
+# You can pass in attributes to the find/find_all function
+para = soup.find_all("p",attrs={"id":"paragraph-id"})
+
+# You can nest find/find_all
+body = soup.find("body")
+div = body.find('div')
+header = div.find('h1')
+
+# We can search specific strings in our find/find_all cells
+import re
+para = soup.find_all("p", strings = re.compile("Some"))
+
+headers = soup.find_all("h2", strings = re.compile('(H|h)eader'))
+
+# Select CSS selector
+content = soup.select("p")
+# similiar to find_all
+
+paras = soup.select("body > p")
+#para within the body
+
+for para in paras:
+    print(para.select("i"))
+    
+#Get different properties of the HTML
+header = soup.find("h2")
+header.string
+
+div =soup.find("div")
+div.get_text()
+#multiple child elements
+
+#Get a specific property from an element
+link = soup.find("a")
+link["href"]

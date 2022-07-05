@@ -1,6 +1,26 @@
 clean_names()
 
 
+Pipe
+-------------------------------------------------------
+filter_toothgrowth <- ToothGrowth %>%
+filter(dose ==0.5) %>%
+arrange(len)
+
+#Add new column
+mutate("xxx",variable = ...)
+
+#arrange (mius sign = Desc order)
+penguins <- penguins %>%
+arrange(-island)
+
+#group_by
+penguins %>%
+group_by(island) %>%
+drop.na() %>%
+summarize(mean_bill_length = mean(bill_length))
+--------------------------------------------------------
+
 
 TRANSFORMING THE DATA
 ------------------------

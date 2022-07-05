@@ -1,0 +1,94 @@
+install.package("pacman")
+library(pacman)
+
+pacman :: p_load(...)
+
+library(iris)
+-------------------------------------------------
+
+plot()
+-----------------------------------
+plot(iris$Species)
+
+#Categorical * Quantitative
+plot(iris$Species, iris$Petal.Width)
+
+#Quantitative pair
+plot(iris$Petal.Length, iris$Petal.Width)
+
+#mathematical
+plot(cos, 0, 2*pi)
+
+eg. plot(dnorm, -3, +3, col=‘#cc0000’, lwd = 5, main = "Standard Normal Distribution", xlab = "z scores", ylab = "Density")
+----------------------------------------------------------------------------------------------
+
+Bar Chart
+--------------------------------------------
+library(mtcars)
+barplot(mtcats$cg1)
+->Summrize the data doesn't work
+
+cylinders <- table (mtcars$cg1)
+barplot(cylinders)
+--------------------------------------------
+
+Histograms
+--------------------------------------------
+library(iris)
+hist(iris$Sepel.Length)
+hist(iris$Sepel.Width[iris$Species == "setosa"], xlim(0,3), break = 9)
+-----------------------------------------------------------------------
+
+Scatterplots
+-------------------------------------------------------------
+#Quantitative Pair
+library(mtcars)
+plot(mtcars$wt, mtcars$mpg)
+---------------------------------------------------------------
+
+Overlaying plots (increased info. density)
+----------------------------------------------------------
+curve(dnorm(x, mean = mean(lynx), sd = sd(lynx)), lwd = 2, add= TRUE)
+lines(density(lynx), col=”blue,lwd=2)
+rug(lynx, lwd=2,col="gray)
+--------------------------------------------------------------------
+
+Selecting Cases
+------------------------------------------------------------------
+hist(irsi$Petal.Length[iris$Species == "virginica" & iris$Petal.Length <2])
+
+variable <- iris[iris$Speices == "setosa"]
+----------------------------------------------------------------------------
+
+Pipe
+-------------------------------------------------------
+filter_toothgrowth <- ToothGrowth %>%
+filter(dose ==0.5) %>%
+arrange(len)
+
+#Add new column
+mutate("xxx",variable = ...)
+
+#arrange (mius sign = Desc order)
+penguins <- penguins %>%
+arrange(-island)
+
+#group_by
+penguins %>%
+group_by(island) %>%
+drop.na() %>%
+summarize(mean_bill_length = mean(bill_length))
+--------------------------------------------------------
+
+Summary()
+describe()
+as.integer()
+as.numeric()
+as.dataframe()
+as.factor()
+
+#remane
+renane(Name = NewName)
+
+seperate()
+unite()

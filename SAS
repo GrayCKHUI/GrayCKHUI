@@ -1,1 +1,47 @@
+DATA (Name);
+infile "..."
+inputs ...$w ...$W AB; #columns
+INFORMAT AB ddmmyyw.; #datatype
+FORMAT AB ddmmyyw.; #how it shows
+datalines;
+-> start to input data
+;
+Run;
+
+Proc print data = (Name);
+Run;
+-------------------------------------------
+
+
+Linear Regression
+------------------------------
+Proc SGSCATTER DATA = (Name);
+plot x*y
+
+Proc REG DATA = (Name);
+model y = x / clb
+
+#modify column
+Proc FORMAT:
+value (name)
+n-n = "string"
+------------------------------------
+
+Loop
+------------------------------------
+DO
+DO UNTIL
+DO WHILE
+
+eg.
+data A;
+v = 1
+DO i = 1 to 10;
+v = v*i;
+output;
+end;
+
+Proc sgplot data = (name);
+scatter x = (name) y = (name);
+run;
 

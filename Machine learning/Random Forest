@@ -1,1 +1,44 @@
+Incosistent Data Entry
+-----------------------------------------------
+professors['Country'] = professors['Country'].str.lower()
+professors['Country'] = professors['Country'].str.strip()
+
+def replace_matches_in_column(df, column, string_to_match, min_ratio = 47)
+  #get a list of unique strings
+  strings = df[columns].unique()
+
+  #get the top 10 closet matches to our input string
+  matches = fuzzywuzzy.process.extract(string_to_match, strings, limit=10, score= fuzzywuzzy.fuzz.token_sort_ratio)
+
+  #only get matches with a ratio > 90
+  close_matches = [matches[0] for matches in matches if matches[1] >= min_ratio]
+
+  #get the rows of all the close matches in our dataframe 
+  rows_with_matches = df[column].isin(close_matches)
+  
+  #replace all rows with close matches with the input matches
+  df.loc[rows_with_matches, column] = string_to_match
+----------------------------------------------------------------
+  
+Approaches to clear missing values
+---------------------------------------
+# 1.Drop columns with missing values
+cols_with_missing = [col for col in X_train.columns if X_train[col].isnull().any()]
+
+reduced_X_train = X_train.drop(cols_with_missing, axis = 1)
+reduced_X_valid = X_valid.drop(cols_with_missing, axis = 1)
+
+# 2.Imputation with the mean
+from sklearn.impute import SimpleImputer
+
+my_imputer = SimpleImputer()
+imputed_X_train = pd.DataFrame(my_imputer.fit_transform(X_train))
+imputed_X_valid = pd.DataFrame(my_imputer.transform(X_valid))
+
+imputed_X_train.columns = X_train.columns
+imputed_X_valid.columns = X_valid.columns
+----------------------------------------------------------------------------------
+
+Random Forest model
+--------------------------------------------------------------------
 

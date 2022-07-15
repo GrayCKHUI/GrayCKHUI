@@ -1,0 +1,43 @@
+cross validation
+--------------------------------------------------------------------------------------------
+# select numeric columns
+numeric_cols = [cname for cname in train_data.columns if train_data[cname].dtype in ['int64','float64']]
+x = train_data[numeric_cols].copy()
+x_test = test_data[numeric_cols].copy()
+
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.pipeline import Pipeline
+from sklearn.imput import SimpleImputer
+
+my_pipeline = Pipeline(steps =[
+     ('preprocessor', SimpleImputer()),
+     ('model',RandomForestRegressor(n_estimators = 50, random_state = 0))
+     ])
+     
+from sklearn.model_selection import corss_val_score
+
+# multiply by -1 since sklearn calculates negative MAE
+scores = -1 * cross_val_score(my_pipelin, X, y,
+                              cv = 5         # number of folds
+                              scoring = "neg_mean_absolute_error")
+                              
+pring(f'Average MAE score: {scores}')
+-------------------------------------------------------------------------------------------------------
+
+XGBoost
+----------------------------------------------------------------------
+from xgboost import XGBRegressor
+from sklearn.metrics import mean_absolute_error
+
+# Define the model
+my_model_1 = XGBRegressor(random_state=0) 
+
+# Fit the model
+my_model_1.fit(X_train,y_train)
+
+predictions_1 = my_model_1.predict(X_valid)
+
+mae_1 = mean_absolute_error(predictions_1,y_valid)
+
+print("Mean Absolute Error:" , mae_1)
+-------------------------------------------------------------------

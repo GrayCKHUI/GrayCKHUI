@@ -1,0 +1,56 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+import pandas as pd
+import datetime as dt
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
+def extract_data(start_date_yyyymmdd: str, end_date_yyyymmdd:str):
+
+    # Format Date
+    start_date = dt.datetime.strptime(start_date_yyyymmdd, "%Y%m%d")
+    end_date = dt.datetime.strptime(end_date_yyyymmdd, "%Y%m%d")
+    date_diff = end_date - start_date
+
+    # Configure Chrome Options
+    options = Options()
+    options.add_argument("--headless")
+
+    prefix = 'https://www.immd.gov.hk/eng/facts/passenger-statistics.html?d='
+    webpage_dict = {start_date_yyyymmdd: prefix + start_date.strftime("%Y%m%d")}
+
+    for i in range(1, date_diff.days+1):
+        date_yyyymmdd = (start_date + dt.timedelta(days=i)).strftime("%Y%m%d")
+        webpage_dict.update({date_yyyymmdd: prefix + date_yyyymmdd})
+
+    browser = webdriver.Chrome(options=options)
+    df = pd.DataFrame(columns=['Date',"Control_Point", "HK_Resident_Arrival", "Mainland_Visitors_Arrival", "Other_Vistors_Arrival", "HK_Resident_Departure", "Mainland_Vistors_Departure", "Other_Vistors_Departure"])
+    
+    for webpage in webpage_dict:
+        try:
+            browser.get(webpage_dict[webpage])
+            # elem = WebDriverWait(browser, 3).until(EC.presence_of_element_located((By.XPATH, row+"/td[4]")))
+            rows = [f"/html/body/section[2]/div/div/div/div/table/tbody/tr[{i}]" for i in range(1,15+1)]
+            for row in rows:
+                data_dict = {"Date": [webpage],
+                            "Control_Point": [browser.find_element(By.XPATH, row+"/td[4]").text],
+                            "HK_Resident_Arrival": [int(browser.find_element(By.XPATH, row+"/td[6]").text.replace(",",""))],
+                            "Mainland_Visitors_Arrival": [int(browser.find_element(By.XPATH, row+"/td[7]").text.replace(",",""))],
+                            "Other_Vistors_Arrival": [int(browser.find_element(By.XPATH, row+"/td[8]").text.replace(",",""))],
+                            "HK_Resident_Departure": [int(browser.find_element(By.XPATH, row+"/td[11]").text.replace(",",""))],
+                            "Mainland_Vistors_Departure": [int(browser.find_element(By.XPATH, row+"/td[12]").text.replace(",",""))],
+                            "Other_Vistors_Departure": [int(browser.find_element(By.XPATH, row+"/td[13]").text.replace(",",""))]}
+                df = pd.concat([df, pd.DataFrame(data_dict)], axis=0, ignore_index=True)
+            i += 1
+        except Exception as e:
+            print(e)
+            break
+
+    browser.quit()
+    return df
+
+df = extract_data(start_date_yyyymmdd = "20240101", end_date_yyyymmdd= "20240724")
+
+destination = r"REPLACE_ME_WITH_LOCATION"
+df.to_csv(destination + r"\data.csv", header=True, index=False)

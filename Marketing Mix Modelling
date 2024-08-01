@@ -1,0 +1,203 @@
+import pandas as pd
+import numpy as np
+import pandas as pd
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+import seaborn as sns
+import warnings
+
+## Suppress all warnings
+warnings.filterwarnings("ignore")
+
+## Changing data format
+df = pd.read_csv("/content/drive/MyDrive/bq-results-20240716-083653-1721119030340/202012-202406.csv")
+# df = df.dropna(subset=['is_exclusive'])
+df = df.fillna(0)
+df['is_exclusive'] = df['is_exclusive'].astype(int)
+df['has_corporate'] = df['has_corporate'].astype(int)
+df['comm_rate'] = df['comm_rate']*100
+pd.set_option('display.max_columns', None)
+df.head()
+
+## Clean outliers
+df[['comm_rate', 'DF', 'SF', 'delay', 'mark_up', 'delivery_time', 'Total_order']].boxplot(vert=0)
+
+def drop_outliers_iqr(df, columns):
+    Q1 = df[columns].quantile(0.25)
+    Q3 = df[columns].quantile(0.75)
+    IQR = Q3 - Q1
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+    mask = ~((df[columns] < lower_bound) | (df[columns] > upper_bound)).any(axis=1)
+    return df[mask]
+
+df2 = drop_outliers_iqr(df, ['delivery_time', 'delay'])
+print("\nDataFrame after dropping outliers for 'feature2' and 'feature3' using IQR method:")
+df2 = df2[(df2['Total_order'] <3000) & (df2['mark_up'] <51) & (df2['voucher'] < 37000)]
+df2.describe()
+
+df2[['comm_rate', 'DF', 'SF', 'delay', 'mark_up', 'delivery_time']].boxplot(vert=0)
+
+## Check out the correlation
+corr_matrix = df2[['Total_order', 'is_exclusive', 'stack',
+       'intravendor_stack', 'Free_delivery', 'pro_user', 'has_corporate',
+       'corporate', 'comm_rate', 'discount', 'voucher', 'DF', 'SF', 'delay',
+       'mark_up', 'delivery_time']].corr()
+plt.figure(figsize=(15, 8))
+sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', center=0)
+plt.title('Correlation Heatmap')
+plt.show()
+
+plt.figure(figsize=(15, 10))
+
+for i, col in enumerate(['is_exclusive', 'intravendor_stack', 'Free_delivery', 'has_corporate',
+       'comm_rate', 'discount', 'voucher', 'DF', 'SF', 'delay', 'mark_up', 'delivery_time'], start=1):
+    plt.subplot(3, 4, i)
+    sns.scatterplot(data=df2, x=col, y='Total_order')
+    plt.title(f'Scatter Plot: {col} vs. Y')
+    plt.xlabel(col)
+    plt.ylabel('Y')
+
+plt.tight_layout()
+plt.show()
+
+--------------------------------------------------------------------------------------------------------------
+## Modelling (Removed High VIF variables)
+import pandas as pd
+import statsmodels.api as sm
+from sklearn.model_selection import train_test_split, KFold
+from sklearn.metrics import mean_squared_error
+
+X = sm.add_constant(df2[['is_exclusive', 'intravendor_stack', 'Free_delivery', 'has_corporate',
+       'comm_rate', 'discount', 'voucher', 'DF', 'SF', 'delay', 'mark_up', 'delivery_time']])
+
+Y = df2['Total_order']
+
+# Creating the model
+model = sm.OLS(Y, X).fit()
+
+# Getting the results
+print(model.summary())
+
+## Check residuals
+# Calculate residuals and fitted values
+df2['residuals'] = model.resid
+df2['fitted'] = model.fittedvalues
+
+## Divide fitted values into quantiles
+# df['quantile'] = pd.qcut(df['fitted'], q=4, labels=False)
+# Use qcut to generate quantile categories and retrieve bin edges
+df2['quantile'], bin_edges = pd.qcut(df2['fitted'], q=4, labels=False, retbins=True)
+
+# Calculate variance of residuals within each quantile
+variance_by_quantile = df2.groupby('quantile')['residuals'].var()
+print("Variance of Residuals by Quantile of Fitted Values:")
+print(variance_by_quantile)
+
+print("Bin edges (cut points) for quantiles:")
+print(bin_edges)
+
+-----------------------------------------------------------------------------------------------------------
+## Train-Test split
+# Calculate standardized residuals
+df2['standardized_residuals'] = df2['residuals'] / np.std(df2['residuals'])
+df_cleaned = df2[np.abs(df2['standardized_residuals']) <= 2]
+
+# Refit the model without outliers
+# X_cleaned = df_cleaned[['is_exclusive', 'intravendor_stack', 'Free_delivery', 'has_corporate',
+#        'comm_rate', 'discount', 'voucher', 'DF', 'SF', 'delay', 'mark_up', 'delivery_time']]
+# X_cleaned = sm.add_constant(X_cleaned)
+
+# model_cleaned = sm.OLS(df_cleaned['Total_order'], X_cleaned).fit()
+
+# print("\nCleaned OLS Model Summary (without outliers)")
+# print(model_cleaned.summary())
+
+train, test = train_test_split(df_cleaned, test_size=0.3, random_state=123)
+
+# Separate the independent and dependent variables for training and testing sets
+X_train = train[['is_exclusive', 'intravendor_stack', 'Free_delivery', 'has_corporate',
+       'comm_rate', 'discount', 'voucher', 'DF', 'SF', 'delay', 'mark_up', 'delivery_time']]
+
+Y_train = train['Total_order']
+
+X_test = test[['is_exclusive', 'intravendor_stack', 'Free_delivery', 'has_corporate',
+       'comm_rate', 'discount', 'voucher', 'DF', 'SF', 'delay', 'mark_up', 'delivery_time']]
+
+
+Y_test = test['Total_order']
+
+# Add a constant term (intercept) to both training and testing sets
+X_train = sm.add_constant(X_train)
+X_test = sm.add_constant(X_test)
+
+# Creating the model on the training set
+model = sm.OLS(Y_train, X_train).fit()
+
+# Getting the results on the training set
+print(model.summary())
+
+# Predicting on the testing set
+predictions = model.predict(X_test)
+
+# Calculate and print Root Mean Squared Error (RMSE) on the testing set
+rmse = np.sqrt(mean_squared_error(Y_test, predictions))
+print(f'\nRoot Mean Squared Error (RMSE) on the test set: {rmse:.2f}')
+
+---------------------------------------------------------------------------------------------------
+## Residual plot
+from statsmodels.stats.diagnostic import het_breuschpagan
+X_train['residuals'] = model.resid
+plt.figure(figsize=(10, 6))
+plt.scatter(model.fittedvalues, X_train['residuals'])
+plt.axhline(y=0, color='r', linestyle='--')
+plt.xlabel('Fitted Values')
+plt.ylabel('Residuals')
+plt.title('Residual Plot for Homoscedasticity Check')
+plt.show()
+
+# Conduct Breusch-Pagan test
+bp_test = het_breuschpagan(model.resid, model.model.exog)
+labels = ['LM Statistic', 'LM-Test p-value', 'F Statistic', 'F-Test p-value']
+print(dict(zip(labels, bp_test)))
+
+---------------------------------------------------------------------------------------------------
+## Robust error
+model_robust = model.get_robustcov_results(cov_type='HC3')
+print("\nOLS Model with Robust Standard Errors")
+print(model_robust.summary())
+
+## Residual plot 
+from statsmodels.stats.diagnostic import het_breuschpagan
+X_train['residuals'] = model_robust.resid
+plt.figure(figsize=(10, 6))
+plt.scatter(model_robust.fittedvalues, X_train['residuals'])
+plt.axhline(y=0, color='r', linestyle='--')
+plt.xlabel('Fitted Values')
+plt.ylabel('Residuals')
+plt.title('Residual Plot for Homoscedasticity Check')
+plt.show()
+
+# Conduct Breusch-Pagan test
+bp_test = het_breuschpagan(model_robust.resid, model_robust.model.exog)
+labels = ['LM Statistic', 'LM-Test p-value', 'F Statistic', 'F-Test p-value']
+print(dict(zip(labels, bp_test)))
+
+## Variance checking
+# Calculate residuals and fitted values
+X_train['residuals'] = model_robust.resid
+X_train['fitted'] = model_robust.fittedvalues
+
+# # Divide fitted values into quantiles
+# df['quantile'] = pd.qcut(df['fitted'], q=4, labels=False)
+# Use qcut to generate quantile categories and retrieve bin edges
+X_train['quantile'], bin_edges = pd.qcut(X_train['fitted'], q=8, labels=False, retbins=True)
+
+# Calculate variance of residuals within each quantile
+variance_by_quantile = X_train.groupby('quantile')['residuals'].var()
+print("Variance of Residuals by Quantile of Fitted Values:")
+print(variance_by_quantile)
+
+print("Bin edges (cut points) for quantiles:")
+print(bin_edges)
